@@ -1,0 +1,64 @@
+{{ if .Values.green.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{  .Values.label.name  }}
+    slot: green
+  name: {{ .Values.label.name  }}-green-deployment
+spec:
+  minReadySeconds: 5
+  progressDeadlineSeconds: 600
+  replicas: {{  .Values.replicas  }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: {{  .Values.label.name  }}
+      slot: green
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        # This enables us to change only the config and force and update to the deployment
+        checksum/config: {{ include (print $.Template.BasePath "/env.yaml") . | sha256sum }}
+      labels:
+        app: {{  .Values.label.name  }}
+        slot: green
+    spec:
+      containers:
+      - image: {{  .Values.container.image  }}:{{ .Values.green.tag  }}
+        imagePullPolicy: IfNotPresent
+        envFrom:
+          - configMapRef:
+              name: {{  .Values.label.name  }}-config
+        env:
+          - name: NODE_ENV
+            value: "production"
+          - name: PORT
+            value: "{{  .Values.ports.http  }}"
+        name: {{  .Values.label.name  }}-image
+        resources:
+          limits:
+            cpu: {{  .Values.limits.cpu  }}
+            memory: {{  .Values.limits.memory  }}
+          requests:
+            cpu: {{  .Values.requests.cpu  }}
+            memory: {{  .Values.requests.memory  }}
+        ports:
+        - name: http
+          containerPort: {{  .Values.ports.http  }}
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{  .Values.ports.http  }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 5
+{{ end }}

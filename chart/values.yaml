@@ -1,0 +1,39 @@
+label:
+  name: <my-awesome-service-name>
+  service: <
+
+container:
+  image: <some-image>
+
+#Number of relicas for the pod
+replicas: 1
+
+#Ports to expose on the docker image for http/s
+ports:
+  http: 80
+
+#Maximum resources allowed to be consumed by the pod
+limits:
+  cpu: 500m
+  memory: 250Mi
+
+#Minimum resources required to start the pod
+requests:
+  cpu: 300m
+  memory: 100Mi
+
+host:
+  name: <some-url.com>
+
+# This is for blue-green deployments
+
+productionSlot: blue
+stagingSlot: green
+
+green:
+  tag: <some-tag-number>
+  enabled: true
+
+blue:
+  tag: <some-tag-number>
+  enabled: true
